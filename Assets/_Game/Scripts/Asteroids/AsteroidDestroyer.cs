@@ -13,19 +13,19 @@ namespace Asteroids
             Clear();
         }
 
-        public void Add()
+        public void Add(Asteroid asteroid)
         {
-            
+            _asteroids[asteroid.GetInstanceID()] = asteroid;
         }
 
-        public void Remove()
+        public void Remove(Asteroid asteroid)
         {
-            
+            _asteroids.Remove(asteroid.GetInstanceID());
         }
 
         public Asteroid Get(int id)
         {
-            return null;
+            return _asteroids[id];
         }
 
         private void Clear()

@@ -1,4 +1,7 @@
+using System;
+using DefaultNamespace.GameEvents;
 using DefaultNamespace.ScriptableEvents;
+using RuntimeSets;
 using UnityEngine;
 using Variables;
 using Random = UnityEngine.Random;
@@ -9,7 +12,9 @@ namespace Asteroids
     public class Asteroid : MonoBehaviour
     {
         [SerializeField] private ScriptableEventInt _onAsteroidDestroyed;
-        
+
+        [SerializeField] private AsteroidRuntimeSet _asteroidSet;
+
         [Header("Config:")]
         [SerializeField] private float _minForce;
         [SerializeField] private float _maxForce;
@@ -17,6 +22,8 @@ namespace Asteroids
         [SerializeField] private float _maxSize;
         [SerializeField] private float _minTorque;
         [SerializeField] private float _maxTorque;
+        
+        [SerializeField] private float _minSplitSize;
 
         [Header("References:")]
         [SerializeField] private Transform _shape;
@@ -24,6 +31,9 @@ namespace Asteroids
         private Rigidbody2D _rigidbody;
         private Vector3 _direction;
         private int _instanceId;
+        private float _size;
+        public float Size => _size;
+        
 
         private void Start()
         {
@@ -35,18 +45,30 @@ namespace Asteroids
             AddTorque();
             SetSize();
         }
-        
+
+        private void OnEnable()
+        {
+            _asteroidSet.Add(this);
+        }
+
+        private void OnDestroy()
+        {
+            _asteroidSet.Remove(this);
+        }
+
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (string.Equals(other.tag, "Laser"))
             {
-               HitByLaser();
+                Destroy(other.gameObject);
+                HitByLaser();
             }
         }
 
         private void HitByLaser()
         {
             _onAsteroidDestroyed.Raise(_instanceId);
+            
             Destroy(gameObject);
         }
 
@@ -96,10 +118,16 @@ namespace Asteroids
             _rigidbody.AddTorque(torque, ForceMode2D.Impulse);
         }
 
-        private void SetSize()
+        public void SetSize()
         {
-            var size = Random.Range(_minSize, _maxSize);
-            _shape.localScale = new Vector3(size, size, 0f);
+            _size = Random.Range(_minSize, _maxSize);
+            _shape.localScale = new Vector3(_size, _size, 0f);
+        }
+
+        public void SetSizeParameters(float minSize, float maxSize)
+        {
+            _minSize = minSize;
+            _maxSize = maxSize;
         }
     }
 }
